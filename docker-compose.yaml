@@ -35,7 +35,7 @@ services:
     container_name: telegram-bot
     restart: unless-stopped
     depends_on:
-      - postgres
+      - postgres_quizbot
       - redis
     command: python main.py
     volumes:
