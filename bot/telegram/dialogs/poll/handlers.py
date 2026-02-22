@@ -40,7 +40,7 @@ async def on_start_poll_click(
     if not is_subscribed:
         await manager.switch_to(PollSG.subscription_required)
     else:
-        await manager.switch_to(PollSG.start_poll)
+        await manager.switch_to(PollSG.question)
 
 
 async def on_subscription_check_click(

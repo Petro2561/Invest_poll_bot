@@ -1,6 +1,7 @@
 """Геттеры для диалога опроса"""
 from typing import TYPE_CHECKING, Any
 
+from aiogram import Bot
 from aiogram_dialog import DialogManager
 
 if TYPE_CHECKING:
@@ -13,11 +14,27 @@ async def get_subscription_data(
 ) -> dict[str, Any]:
     """Получить данные для экрана подписки на канал"""
     config = dialog_manager.middleware_data["config"]
+    bot: Bot = dialog_manager.middleware_data["bot"]
+    user_id = dialog_manager.event.from_user.id
+    
     channel_username = config.expert_channel.channel_username.lstrip("@")
     channel_url = f"https://t.me/{channel_username}"
+    
+    # Проверяем подписку на канал
+    is_subscribed = False
+    try:
+        member = await bot.get_chat_member(
+            chat_id=f"@{channel_username}",
+            user_id=user_id
+        )
+        is_subscribed = member.status in ["member", "administrator", "creator"]
+    except Exception:
+        is_subscribed = False
 
     return {
         "channel_url": channel_url,
+        "is_subscribed": is_subscribed,
+        "not_subscribed": not is_subscribed,  # Для условия when
     }
 
 
