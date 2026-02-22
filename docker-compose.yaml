@@ -4,7 +4,7 @@ services:
     container_name: postgres_quizbot
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "5433:5432"  # Внешний порт 5433, внутренний 5432
     environment:
       POSTGRES_DB: quizbot
       POSTGRES_USER: tg_user
