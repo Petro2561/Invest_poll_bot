@@ -1,49 +1,48 @@
 services:
-  postgres_quizbot:
-    image: postgres:15
-    container_name: postgres_quizbot
-    restart: unless-stopped
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_DB: quizbot
-      POSTGRES_USER: tg_user
-      POSTGRES_PASSWORD: tg_pass
-    command:
-      - "postgres"
-      - "-c"
-      - "max_connections=300"
-      - "-c"
-      - "superuser_reserved_connections=5"
-    volumes:
-      - ./postgres_data:/var/lib/postgresql/data
+  # Используем существующие контейнеры postgres и redis
+  # postgres_quizbot:
+  #   image: postgres:15
+  #   container_name: postgres_quizbot
+  #   restart: unless-stopped
+  #   ports:
+  #     - "5432:5432"
+  #   environment:
+  #     POSTGRES_DB: quizbot
+  #     POSTGRES_USER: tg_user
+  #     POSTGRES_PASSWORD: tg_pass
+  #   command:
+  #     - "postgres"
+  #     - "-c"
+  #     - "max_connections=300"
+  #     - "-c"
+  #     - "superuser_reserved_connections=5"
+  #   volumes:
+  #     - ./postgres_data:/var/lib/postgresql/data
 
-  redis_quizbot:
-    image: redis:latest
-    container_name: redis_quizbot
-    restart: unless-stopped
-    ports:
-      - "127.0.0.1:6379:6379"  # Хост:6380 -> Контейнер:6379 (стандартный порт Redis)    
-    volumes:
-      - ./redis_data:/data
-    command: ["redis-server", "--appendonly", "yes"]
+  # redis_quizbot:
+  #   image: redis:latest
+  #   container_name: redis_quizbot
+  #   restart: unless-stopped
+  #   ports:
+  #     - "127.0.0.1:6379:6379"
+  #   volumes:
+  #     - ./redis_data:/data
+  #   command: ["redis-server", "--appendonly", "yes"]
 
   bot:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: telegram-bot
+    container_name: telegram-bot-quiz
     restart: unless-stopped
-    depends_on:
-      - postgres_quizbot
-      - redis_quizbot
+    network_mode: "host"  # Используем host network для доступа к существующим контейнерам
     command: python main.py
     volumes:
       - .:/app
     env_file:
       - .env
     environment:
-      REDIS_HOST: redis_quizbot
+      REDIS_HOST: localhost
       REDIS_PORT: 6379
 
 
@@ -51,15 +50,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: admin-panel
+    container_name: admin-panel-quiz
     restart: unless-stopped
-    ports:
-      - "8001:8081"  # Хост:8001 -> Контейнер:8081
-    depends_on:
-      - redis_quizbot
-      # - nats
+    network_mode: "host"  # Используем host network для доступа к существующим контейнерам
     command: >
-      python -m uvicorn bot.admin.main:app --host 0.0.0.0 --port 8081
+      python -m uvicorn bot.admin.main:app --host 0.0.0.0 --port 8001
     volumes:
       - .:/app
     env_file:
