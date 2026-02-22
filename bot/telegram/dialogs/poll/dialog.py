@@ -44,7 +44,6 @@ poll_dialog = Dialog(
         ),
         getter=getters.get_subscription_data,
         state=PollSG.subscription_required,
-        when="not_subscribed",  # Показывать только если не подписан
     ),
     Window(
         Format(templates.QUESTION_TEXT),
