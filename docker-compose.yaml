@@ -1,0 +1,85 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: vk_dating_bot
+      POSTGRES_USER: tg_user
+      POSTGRES_PASSWORD: tg_pass
+    command:
+      - "postgres"
+      - "-c"
+      - "max_connections=300"
+      - "-c"
+      - "superuser_reserved_connections=5"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"  # Хост:6380 -> Контейнер:6379 (стандартный порт Redis)    
+    volumes:
+      - ./redis_data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: telegram-bot
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+    command: python main.py
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+  bot2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: telegram-bot2
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+    command: python main.py
+    volumes:
+      - .:/app
+    env_file:
+      - .env2  # Другой .env файл
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "127.0.0.1:8080:8080" 
+
+  admin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: admin-panel
+    restart: unless-stopped
+    ports:
+      - "8001:8081"  # Хост:8001 -> Контейнер:8081
+    depends_on:
+      - redis
+      # - nats
+    command: >
+      python -m uvicorn bot.admin.main:app --host 0.0.0.0 --port 8081
+    volumes:
+      - .:/app
+    env_file:
+      - .env
