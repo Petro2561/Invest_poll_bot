@@ -8,6 +8,19 @@ if TYPE_CHECKING:
     from bot.services.database.models import DBUser
 
 
+async def get_subscription_data(
+    dialog_manager: DialogManager, **kwargs
+) -> dict[str, Any]:
+    """Получить данные для экрана подписки на канал"""
+    config = dialog_manager.middleware_data["config"]
+    channel_username = config.expert_channel.channel_username.lstrip("@")
+    channel_url = f"https://t.me/{channel_username}"
+
+    return {
+        "channel_url": channel_url,
+    }
+
+
 async def get_current_question(
     dialog_manager: DialogManager, **kwargs
 ) -> dict[str, Any]:

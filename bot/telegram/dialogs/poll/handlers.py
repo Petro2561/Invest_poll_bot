@@ -86,20 +86,6 @@ async def on_subscription_check_click(
 #     return False
 
 
-async def on_subscribe_channel_click(
-    callback: CallbackQuery,
-    button: Button,
-    dialog_manager: DialogManager
-) -> None:
-    """Обработчик кнопки 'Подписаться на канал'"""
-    config: Config = dialog_manager.middleware_data["config"]
-    channel_username = config.expert_channel.channel_username
-    await callback.answer(
-        f"Перейдите в канал: {channel_username}",
-        show_alert=True
-    )
-
-
 async def on_continue_poll_click(
     callback: CallbackQuery,
     button: Button,

@@ -31,10 +31,10 @@ poll_dialog = Dialog(
     Window(
         Const(templates.SUBSCRIPTION_REQUIRED_TEXT),
         Group(
-            Button(
+            Url(
                 Const("Подписаться на канал"),
+                Format("{channel_url}"),
                 id="subscribe_channel",
-                on_click=handlers.on_subscribe_channel_click,
             ),
             Button(
                 Const("Я подписался"),
@@ -42,6 +42,7 @@ poll_dialog = Dialog(
                 on_click=handlers.on_subscription_check_click,
             ),
         ),
+        getter=getters.get_subscription_data,
         state=PollSG.subscription_required,
     ),
     Window(
@@ -117,7 +118,10 @@ poll_dialog = Dialog(
             SwitchInlineQuery(
                 Const("Поделиться ботом"),
                 id="share_bot",
-                switch_inline_query=Format("Пройди опрос и выиграй поездку в Дубай: https://t.me/d1capital_quizbot?start={ref_code}"),
+                switch_inline_query=Format(
+                    "Пройди опрос и выиграй поездку в Дубай: "
+                    "https://t.me/d1capital_quizbot?start={ref_code}"
+                ),
             ),
             Button(
                 Const("Мои шансы"),
@@ -155,7 +159,10 @@ poll_dialog = Dialog(
             SwitchInlineQuery(
                 Const("Поделиться ботом"),
                 id="share_bot",
-                switch_inline_query=Format("Пройди опрос и выиграй поездку в Дубай: https://t.me/d1capital_quizbot?start={ref_code}"),
+                switch_inline_query=Format(
+                    "Пройди опрос и выиграй поездку в Дубай: "
+                    "https://t.me/d1capital_quizbot?start={ref_code}"
+                ),
             ),
             Button(
                 Const("Мои шансы"),

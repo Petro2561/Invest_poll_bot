@@ -46,25 +46,6 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
 
-  bot2:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: telegram-bot2
-    restart: unless-stopped
-    depends_on:
-      - postgres
-      - redis
-    command: python main.py
-    volumes:
-      - .:/app
-    env_file:
-      - .env2  # Другой .env файл
-    environment:
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-    ports:
-      - "127.0.0.1:8080:8080" 
 
   admin:
     build:
