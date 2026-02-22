@@ -1,7 +1,7 @@
 services:
   postgres_quizbot:
     image: postgres:15
-    container_name: postgres
+    container_name: postgres_quizbot
     restart: unless-stopped
     ports:
       - "5432:5432"
@@ -20,7 +20,7 @@ services:
 
   redis_quizbot:
     image: redis:latest
-    container_name: redis
+    container_name: redis_quizbot
     restart: unless-stopped
     ports:
       - "127.0.0.1:6379:6379"  # Хост:6380 -> Контейнер:6379 (стандартный порт Redis)    
@@ -43,7 +43,7 @@ services:
     env_file:
       - .env
     environment:
-      REDIS_HOST: redis
+      REDIS_HOST: redis_quizbot
       REDIS_PORT: 6379
 
 
