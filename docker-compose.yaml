@@ -44,6 +44,8 @@ services:
     environment:
       REDIS_HOST: localhost
       REDIS_PORT: 6379
+      # Примечание: DATABASE_URL должен указывать на localhost:5432
+      # Например: postgresql+asyncpg://tg_user:tg_pass@localhost:5432/quizbot
 
 
   admin:
