@@ -168,7 +168,7 @@ async def on_answer_selected(
     manager.dialog_data["is_correct"] = is_correct
 
     # Всегда показываем экран с обратной связью
-    await manager.switch_to(PollSG.answer_feedback)
+    await manager.switch_to(PollSG.answer_feedback, show_mode=ShowMode.SEND)
 
 
 async def on_retry_question_click(

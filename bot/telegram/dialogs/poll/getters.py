@@ -114,8 +114,8 @@ async def get_answer_feedback(
     repository: "Repository" = dialog_manager.middleware_data["repository"]
     config = dialog_manager.middleware_data["config"]
 
-    default_hint = "Эксперт разбирал этот вопрос в своем канале"
-    hint = default_hint
+    # По умолчанию подсказки нет
+    hint = ""
 
     if poll_id:
         poll = await repository.polls.get_by_id(poll_id)
@@ -127,7 +127,16 @@ async def get_answer_feedback(
     if is_correct:
         answer_text = templates.CORRECT_ANSWER_TEXT
     else:
-        answer_text = templates.INCORRECT_ANSWER_TEXT.format(hint=hint)
+        # Если подсказка есть — используем шаблон с подсказкой,
+        # если нет — показываем только текст без блока "Подсказка",
+        # но с фразой "Эксперт разбирал этот вопрос в своем канале"
+        if hint:
+            answer_text = templates.INCORRECT_ANSWER_TEXT.format(hint=hint)
+        else:
+            answer_text = (
+                "Не совсем\n\n"
+                "Эксперт разбирал этот вопрос в своем канале"
+            )
 
     # Получаем URL канала эксперта
     channel_username = config.expert_channel.channel_username.lstrip("@")
