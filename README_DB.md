@@ -22,6 +22,14 @@ alembic revision --autogenerate -m "Initial migration"
 alembic upgrade head
 ```
 
+**В Docker** (из хоста, контейнер бота):
+
+```bash
+docker exec -it telegram-bot-quiz bash -c "cd /app && python -m alembic upgrade head"
+```
+
+Скрипты миграций лежат в каталоге `alembic_migrations/` (так он не конфликтует с пакетом `alembic` из PyPI при запуске `python -m alembic` из `/app`).
+
 **Вариант B: Использование CLI утилиты**
 
 ```bash
@@ -109,7 +117,7 @@ python manage.py history           # Показать историю
 
 ## Структура миграций
 
-Миграции хранятся в `alembic/versions/` и имеют формат:
+Миграции хранятся в `alembic_migrations/versions/` и имеют формат:
 ```
 <revision>_<description>.py
 ```
