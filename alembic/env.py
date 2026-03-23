@@ -12,7 +12,7 @@ from bot.services.database.models import Base
 # Импортируем все модели, чтобы они были в Base.metadata
 from bot.services.database.models.user import DBUser, BondSubscription
 from bot.services.database.models.poll import (
-    Poll, UserPollAnswer, UserPoll, Referral
+    Poll, Referral
 )
 
 # this is the Alembic Config object, which provides

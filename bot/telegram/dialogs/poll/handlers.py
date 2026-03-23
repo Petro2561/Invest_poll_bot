@@ -16,6 +16,61 @@ if TYPE_CHECKING:
     from bot.services.database import DBUser
 
 
+async def _remove_poll_reminder(manager: DialogManager, user_id: int) -> None:
+    """Удалить активное напоминание о продолжении опроса."""
+    scheduler = manager.middleware_data.get("scheduler")
+    redis = manager.middleware_data.get("redis")
+    if not scheduler or not redis:
+        return
+
+    reminder_key = f"poll_reminder:{user_id}"
+    job_id = await redis.get(reminder_key)
+    if not job_id:
+        return
+
+    job_id_str = job_id.decode("utf-8") if isinstance(job_id, bytes) else job_id
+    await scheduler.remove_job(job_id_str)
+    await redis.delete(reminder_key)
+    logging.info(
+        f"Напоминание для пользователя {user_id} удалено (job_id: {job_id_str})"
+    )
+
+
+async def _schedule_poll_reminder(
+    manager: DialogManager,
+    user_id: int,
+    questions_completed: int,
+) -> None:
+    """
+    Создать/пересоздать напоминание:
+    - только после первого пройденного вопроса;
+    - через 24 часа с момента последней активности.
+    """
+    if questions_completed < 1:
+        return
+
+    scheduler = manager.middleware_data.get("scheduler")
+    redis = manager.middleware_data.get("redis")
+    if not scheduler or not redis:
+        return
+
+    await _remove_poll_reminder(manager, user_id)
+
+    reminder_text = (
+        "Привет! Ты остановился в опросе. "
+        "Продолжи отвечать на вопросы, чтобы участвовать в розыгрыше "
+        "поездки в Дубай! ✈️🇦🇪"
+    )
+    job_id = await scheduler.schedule_message(
+        user_id=user_id,
+        message_text=reminder_text,
+        hours=24,
+    )
+    if job_id:
+        reminder_key = f"poll_reminder:{user_id}"
+        await redis.set(reminder_key, job_id, ex=86400 * 2)
+
+
 async def on_start_poll_click(
     callback: CallbackQuery,
     button: Button,
@@ -65,12 +120,14 @@ async def on_subscription_check_click(
                 show_alert=True
             )
         else:
+            await callback.answer("Подписку вижу, давай начинать опрос😎 ")
             await dialog_manager.switch_to(
                 state=PollSG.question,
                 show_mode=ShowMode.SEND
             )
     except Exception as error:
         logging.error(f"Ошибка проверки группы {error}")
+        await callback.answer("Подписку вижу, давай начинать опрос😎 ")
         await dialog_manager.switch_to(
             state=PollSG.question,
             show_mode=ShowMode.SEND
@@ -140,27 +197,9 @@ async def on_answer_selected(
     # Проверяем правильность ответа
     is_correct = selected_answer_num == poll.correct_answer
 
-    # Если это 5-й вопрос (questions_completed == 4, следующий будет 5-й)
-    # и ответ правильный, удаляем напоминание
-    if questions_completed == 4 and is_correct:
-        scheduler = manager.middleware_data.get("scheduler")
-        redis = manager.middleware_data.get("redis")
-
-        if scheduler and redis:
-            reminder_key = f"poll_reminder:{user_id}"
-            job_id = await redis.get(reminder_key)
-            if job_id:
-                job_id_str = (
-                    job_id.decode('utf-8')
-                    if isinstance(job_id, bytes)
-                    else job_id
-                )
-                await scheduler.remove_job(job_id_str)
-                await redis.delete(reminder_key)
-                logging.info(
-                    f"Напоминание для пользователя {user_id} "
-                    f"удалено (job_id: {job_id_str})"
-                )
+    # Пользователь активен: пересоздаем напоминание на +24ч,
+    # если уже есть хотя бы 1 пройденный вопрос.
+    await _schedule_poll_reminder(manager, user_id, questions_completed)
 
     # Сохраняем данные в dialog_data
     manager.dialog_data["current_poll_id"] = poll.id
@@ -207,6 +246,8 @@ async def on_continue_after_correct_click(
 
     # Проверяем, завершен ли опрос
     if fresh_user.questions_completed >= total_questions:
+        await _remove_poll_reminder(manager, user_id)
+
         # Завершаем опрос
         fresh_user.has_completed_poll = True
         await uow.commit(fresh_user)
@@ -221,32 +262,17 @@ async def on_continue_after_correct_click(
 
         await manager.switch_to(PollSG.poll_completed)
     elif fresh_user.questions_completed == 4:
+        await _schedule_poll_reminder(
+            manager, user_id, fresh_user.questions_completed
+        )
+
         # Показываем промежуточное окно после 4-го вопроса
-        # Создаем напоминание через 24 часа
-        scheduler = manager.middleware_data.get("scheduler")
-        redis = manager.middleware_data.get("redis")
-
-        if scheduler and redis:
-            reminder_text = (
-                "Привет! Ты остановился на 4-м вопросе. "
-                "Продолжи опрос, чтобы участвовать в розыгрыше "
-                "поездки в Дубай! ✈️🇦🇪"
-            )
-            job_id = await scheduler.schedule_message(
-                user_id=user_id,
-                message_text=reminder_text,
-                minutes=1
-                # hours=24
-            )
-            if job_id:
-                # Сохраняем job_id в Redis
-                reminder_key = f"poll_reminder:{user_id}"
-                await redis.set(
-                    reminder_key, job_id, ex=86400 * 2
-                )  # 2 дня TTL
-
         await manager.switch_to(PollSG.mid_poll_reminder)
     else:
+        await _schedule_poll_reminder(
+            manager, user_id, fresh_user.questions_completed
+        )
+
         # Переходим к следующему вопросу
         await manager.switch_to(PollSG.question)
 

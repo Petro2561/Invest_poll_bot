@@ -114,18 +114,22 @@ async def get_answer_feedback(
     repository: "Repository" = dialog_manager.middleware_data["repository"]
     config = dialog_manager.middleware_data["config"]
 
-    # По умолчанию подсказки нет
+    # По умолчанию данных по вопросу нет
     hint = ""
+    poll_link = ""
+    correct_reaction = ""
 
     if poll_id:
         poll = await repository.polls.get_by_id(poll_id)
-        if poll and poll.hint:
-            hint = poll.hint
+        if poll:
+            hint = poll.hint or ""
+            poll_link = poll.link or ""
+            correct_reaction = poll.correct_answer_reaction or ""
 
     # Формируем текст ответа в зависимости от правильности
     from bot.telegram.dialogs.poll import templates
     if is_correct:
-        answer_text = templates.CORRECT_ANSWER_TEXT
+        answer_text = correct_reaction or templates.CORRECT_ANSWER_TEXT
     else:
         # Если подсказка есть — используем шаблон с подсказкой,
         # если нет — показываем только текст без блока "Подсказка",
@@ -141,6 +145,7 @@ async def get_answer_feedback(
     # Получаем URL канала эксперта
     channel_username = config.expert_channel.channel_username.lstrip("@")
     channel_url = f"https://t.me/{channel_username}"
+    target_url = poll_link or channel_url
 
     return {
         "is_correct": is_correct,
@@ -148,7 +153,7 @@ async def get_answer_feedback(
         "hint": hint,
         "user_answer": user_answer,
         "answer_text": answer_text,
-        "channel_url": channel_url,
+        "channel_url": target_url,
     }
 
 
@@ -157,7 +162,14 @@ async def get_poll_completed_data(
 ) -> dict[str, Any]:
     """Получить данные после завершения опроса"""
     repository: "Repository" = dialog_manager.middleware_data["repository"]
+    bot: Bot = dialog_manager.middleware_data["bot"]
     user_id = dialog_manager.event.from_user.id
+
+    ref_code = f"ref_{user_id}"
+    bot_username = (
+        bot.username if hasattr(bot, "username") and bot.username else "your_bot"
+    )
+    ref_link = f"https://t.me/{bot_username}?start={ref_code}"
 
     # Базовый шанс = 1
     base_chances = 1
@@ -170,6 +182,8 @@ async def get_poll_completed_data(
 
     return {
         "chances": total_chances,
+        "ref_link": ref_link,
+        "ref_code": ref_code,
     }
 
 

@@ -29,6 +29,14 @@ class Poll(Base, TimestampMixin):
     # Номер правильного ответа (1-8)
     correct_answer: Mapped[int] = mapped_column(Integer, nullable=False)
 
+    # Ссылка на материал с разбором (опционально)
+    link: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    # Реакция при правильном ответе (опционально)
+    correct_answer_reaction: Mapped[Optional[str]] = mapped_column(
+        Text, nullable=True
+    )
+
     # Подсказка при неправильном ответе (опционально)
     hint: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 

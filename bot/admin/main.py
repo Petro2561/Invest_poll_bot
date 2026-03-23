@@ -67,6 +67,8 @@ class PollAdmin(ModelView, model=Poll):
         Poll.answer_7,
         Poll.answer_8,
         Poll.correct_answer,
+        Poll.link,
+        Poll.correct_answer_reaction,
         Poll.hint,
         Poll.created_at,
     ]
@@ -81,6 +83,8 @@ class PollAdmin(ModelView, model=Poll):
         Poll.answer_7: "Ответ 7",
         Poll.answer_8: "Ответ 8",
         Poll.correct_answer: "Правильный ответ",
+        Poll.link: "Ссылка",
+        Poll.correct_answer_reaction: "Реакция на правильный ответ",
         Poll.hint: "Подсказка",
     }
     name_plural = "Опросы"

@@ -47,23 +47,23 @@ class MessageScheduler:
         self,
         user_id: int,
         message_text: str,
-        minutes: int = 1
-        # hours: int = 24
+        hours: int = 24,
+        minutes: int = 0,
     ) -> str:
         """
-        Запланировать отправку сообщения через указанное количество часов
+        Запланировать отправку сообщения через указанное время.
 
         Args:
             user_id: ID пользователя для отправки
             message_text: Текст сообщения
-            minutes: Количество минут до отправки (по умолчанию 1)
+            hours: Количество часов до отправки (по умолчанию 24)
+            minutes: Дополнительное количество минут до отправки
 
         Returns:
             job_id: ID созданной задачи
         """
         # Вычисляем время отправки
-        # send_time = datetime.now() + timedelta(hours=hours)
-        send_time = datetime.now() + timedelta(minutes=minutes)
+        send_time = datetime.now() + timedelta(hours=hours, minutes=minutes)
 
         # Создаем уникальный ID задачи
         job_id = f"reminder_{user_id}_{int(send_time.timestamp())}"

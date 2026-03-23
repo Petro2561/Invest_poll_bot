@@ -70,7 +70,7 @@ poll_dialog = Dialog(
         ),
         Group(
             Url(
-                Const("Перейти в канал эксперта"),
+                Const("Прочитать пост, где есть ответ"),
                 Format("{channel_url}"),
                 id="go_to_channel",
                 when="not_is_correct",
@@ -116,7 +116,7 @@ poll_dialog = Dialog(
         Format(templates.REFERRAL_SCREEN_TEXT),
         Group(
             SwitchInlineQuery(
-                Const("Поделиться ботом"),
+                Const(" Пригласить друга"),
                 id="share_bot",
                 switch_inline_query=Format(
                     "Пройди опрос и выиграй поездку в Дубай: "
@@ -137,10 +137,15 @@ poll_dialog = Dialog(
     Window(
         Format(templates.MY_CHANCES_TEXT),
         Group(
-            Button(
-                Const("Пригласить еще"),
-                id="invite_more",
-                on_click=handlers.on_invite_more_click,
+            Url(
+                Const("Перейти на канал"),
+                Const("https://t.me/danila_invest_tg"),
+                id="go_to_channel",
+            ),
+            Url(
+                Const("Прочитать про Рей Далио"),
+                Const("https://t.me/danila_invest_tg/3009"),
+                id="read_ray_dalio",
             ),
             SwitchTo(
                 Const("Назад"),
