@@ -1,5 +1,6 @@
 aiofiles==24.1.0
 aiogram==3.17.0
+alembic==1.14.1
 aiogram_dialog==2.2.0
 aiohappyeyeballs==2.4.4
 aiohttp==3.11.11nan
