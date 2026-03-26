@@ -195,9 +195,14 @@ async def get_referral_data(
 
     # Создаем реферальный код для inline query
     ref_code = f"ref_{user_id}"
+    bot: Bot = dialog_manager.middleware_data["bot"]
+    bot_username = (
+        bot.username if hasattr(bot, "username") and bot.username else "your_bot"
+    )
+    ref_link = f"https://t.me/{bot_username}?start={ref_code}"
 
     return {
-        "ref_link": f"https://t.me/your_bot?start={ref_code}",
+        "ref_link": ref_link,
         "ref_code": ref_code,
     }
 
