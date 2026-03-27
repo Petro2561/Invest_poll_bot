@@ -304,10 +304,8 @@ async def on_share_bot_click(
     bot: Bot = manager.middleware_data["bot"]
     user_id = callback.from_user.id
     ref_code = f"ref_{user_id}"
-    bot_username = (
-        bot.username if hasattr(bot, 'username') and bot.username
-        else "your_bot"
-    )
+    me = await bot.get_me()
+    bot_username = me.username
     ref_link = f"https://t.me/{bot_username}?start={ref_code}"
 
     await callback.answer(

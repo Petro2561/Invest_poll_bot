@@ -166,9 +166,8 @@ async def get_poll_completed_data(
     user_id = dialog_manager.event.from_user.id
 
     ref_code = f"ref_{user_id}"
-    bot_username = (
-        bot.username if hasattr(bot, "username") and bot.username else "your_bot"
-    )
+    bot_info = await bot.get_me()
+    bot_username = bot_info.username
     ref_link = f"https://t.me/{bot_username}?start={ref_code}"
 
     # Базовый шанс = 1
@@ -196,9 +195,8 @@ async def get_referral_data(
     # Создаем реферальный код для inline query
     ref_code = f"ref_{user_id}"
     bot: Bot = dialog_manager.middleware_data["bot"]
-    bot_username = (
-        bot.username if hasattr(bot, "username") and bot.username else "your_bot"
-    )
+    me = await bot.get_me()
+    bot_username = me.username
     ref_link = f"https://t.me/{bot_username}?start={ref_code}"
 
     return {
